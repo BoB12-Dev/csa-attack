@@ -92,7 +92,7 @@ void initPacket(struct Packet *packet, char *ap_mac) {
     macStringToUint8(ap_mac, packet->deauth.bssid);
 
 
-    uint8_t channel_num[5] = {0x12,0x34,0x14,0x45,0x31};
+    uint8_t channel_num[5] = {0x25, 0x03,0x01,0x13, 0x03};
     memcpy(packet->channel_switch_announcement,channel_num,sizeof(channel_num));
 }
 
