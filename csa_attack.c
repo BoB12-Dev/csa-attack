@@ -69,12 +69,9 @@ int main(int argc, char *argv[]) {
 
         int result = pcap_next_ex(handle, &header, &cap_packet);
 
-        
-        
         if (result == 1) {  // 정상적으로 패킷을 가져온 경우
             packet_view(header, cap_packet);
             process_packet(header, cap_packet,station_mac);
-            // packet_view(header, cap_packet); //제대로 잡긴하네
         } else if (result == -1) {  // 에러가 발생한 경우
             fprintf(stderr, "Error occurred while capturing packets: %s\n", pcap_geterr(handle));
         } else if (result == 0) {  // 타임아웃이 발생한 경우
@@ -121,13 +118,13 @@ void packet_view(const struct pcap_pkthdr *h, const unsigned char *p) {
 
 
 void process_packet(const struct pcap_pkthdr *header, const unsigned char *packet, char *station_mac) {
-    int fcs_offset = header->len - 4; // FCS는 마지막 4바이트
-    uint32_t fcs_value = *((uint32_t *)(packet + fcs_offset));
+    // int fcs_offset = header->len - 4; // FCS는 마지막 4바이트
+    // uint32_t fcs_value = *((uint32_t *)(packet + fcs_offset));
 
-    // CSA 정보 추가
+    // 갑자기 잘 가다가 라디오탭 헤더에서 13바이트가 쑥 빠져버리네?
+    // 
     uint8_t csa_data[5] = {0x25, 0x03, 0x01, 0x13, 0x03};
 
-    // 패킷에 CSA 정보 추가
     int new_packet_len = header->len + sizeof(csa_data);
     unsigned char *new_packet = (unsigned char *)malloc(new_packet_len);
     if (new_packet != NULL) {
@@ -135,10 +132,11 @@ void process_packet(const struct pcap_pkthdr *header, const unsigned char *packe
         memcpy(new_packet + header->len, csa_data, sizeof(csa_data));
 
         // Unicast 대상인 경우, destination_address 수정
+        
         if (station_mac != NULL) {
-            macStringToUint8(station_mac, new_packet + 4); // 수정할 위치 계산 필요
+            
+            macStringToUint8(station_mac, new_packet+28);
         }
-
         // 패킷 보내기 전에 패킷 정보 출력
         packet_view(header, new_packet);
 
@@ -153,5 +151,6 @@ void process_packet(const struct pcap_pkthdr *header, const unsigned char *packe
         fprintf(stderr, "Memory allocation failed\n");
     }
 }
+
 
 
