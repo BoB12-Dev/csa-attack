@@ -8,12 +8,8 @@
 #include <time.h>
 #include <signal.h>
 
-#include "frame.h"
 
 void usage();
-void AP_broadcast_frame(struct Packet *packet);
-void AP_unicast_frame(struct Packet *packet, char *station_mac);
-void initPacket(struct Packet *packet, char *ap_mac);
 void macStringToUint8(char *mac_string, uint8_t *ap_mac);
 void handleSignal(int signal);
 void cleanup(pcap_t *handle);
@@ -58,7 +54,7 @@ int main(int argc, char *argv[]) {
     
 
     time_t start_time = time(NULL);
-    while ((time(NULL) - start_time) < 10) {
+    while (true) {
         struct pcap_pkthdr *header;
         const unsigned char *cap_packet;
 
@@ -73,7 +69,7 @@ int main(int argc, char *argv[]) {
             pcap_close(handle);
             exit(0);
         }
-        usleep(100000);
+        usleep(1000000);
     }
 
     cleanup(handle);
@@ -106,10 +102,10 @@ void cleanup(pcap_t *handle) {
 
 
 void process_packet(const struct pcap_pkthdr *header, const unsigned char *packet, char *station_mac) {
-    uint8_t csa_data[5] = {0x25, 0x03, 0x01, 0x24, 0x03};
-    printf("captered packet len  %d\n", header->len);
+    uint8_t csa_data[5] = {0x25, 0x03, 0x01, 0x01, 0x03};
+    printf("captered packet len  \t%d\n", header->len);
     int new_packet_len = header->len + sizeof(csa_data);
-    printf("new_packet_len: %d\n", new_packet_len);
+    printf("new_packet_len: \t%d\n", new_packet_len);
 
     unsigned char *new_packet = (unsigned char *)malloc(new_packet_len);
     if (new_packet != NULL) {
